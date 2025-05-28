@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  plume:
+    restart: unless-stopped
+    build:
+      context: ./plume
+      dockerfile: Dockerfile
+    volumes:
+      - plume-data:/home/user/.arbitrum/local/nitro
+    ports:
+      - ${RPC_PORT:-8547}:8547
+      - ${WS_PORT:-8548}:8548
+      - ${METRICS_PORT:-6070}:6070
+      - ${P2P_PORT:-9151}:9151
+      - ${P2P_UDP_PORT:-9152}:9152/udp
+    environment:
+      - DATA_DIR=/home/user/.arbitrum/local/nitro
+      - RPC_PORT=8547
+      - WS_PORT=8548
+      - METRICS_PORT=6070
+      - P2P_PORT=9151
+      - P2P_UDP_PORT=9152
+    networks:
+      - plume-network
+
+networks:
+  plume-network:
+    driver: bridge
+
+volumes:
+  plume-data:
+    driver: local
