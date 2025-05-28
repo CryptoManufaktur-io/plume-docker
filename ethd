@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-__project_name="X Docker"
-__app_name="X node"
-__sample_service="X-geth"
+__project_name="Plume Docker"
+__app_name="Plume node"
+__sample_service="Plume-RPC"
 __docker_exe="docker"
 __compose_exe="docker compose"
 __compose_upgraded=0
