@@ -20,8 +20,10 @@ version() {
 # Client versions
 # Adjust for your clients and how to check their version
   case "${__value}" in
-    *x.yml* )
-      __docompose exec x-geth x-geth version
+    *plume.yml* )
+      echo "Plume Nitro Node"
+      __docompose exec consensus nitro version
+      echo
       ;;&
   esac
 }
