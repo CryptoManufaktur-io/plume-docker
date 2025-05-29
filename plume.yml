@@ -11,6 +11,7 @@ services:
     build:
       context: ./plume-build
     image: plume:local
+    pull_policy: never
     user: "${USERNAME:-user}"
     restart: unless-stopped
     environment:
