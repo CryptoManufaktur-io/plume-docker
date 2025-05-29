@@ -56,25 +56,25 @@ services:
     labels:
       - traefik.enable=true
       # RPC Router
-      - traefik.http.routers.${PLUME_RPC_HOST:-plume-rpc}.service=${PLUME_RPC_HOST:-plume-rpc}
-      - traefik.http.routers.${PLUME_RPC_HOST:-plume-rpc}.entrypoints=websecure
-      - traefik.http.routers.${PLUME_RPC_HOST:-plume-rpc}.rule=Host(`${PLUME_RPC_HOST:-plume-rpc}.${DOMAIN}`)
-      - traefik.http.routers.${PLUME_RPC_HOST:-plume-rpc}.tls.certresolver=letsencrypt
-      - traefik.http.routers.${PLUME_RPC_HOST:-plume-rpc}lb.service=${PLUME_RPC_HOST:-plume-rpc}
-      - traefik.http.routers.${PLUME_RPC_HOST:-plume-rpc}lb.entrypoints=websecure
-      - traefik.http.routers.${PLUME_RPC_HOST:-plume-rpc}lb.rule=Host(`${RPC_LB:-plume-lb}.${DOMAIN}`)
-      - traefik.http.routers.${PLUME_RPC_HOST:-plume-rpc}lb.tls.certresolver=letsencrypt
-      - traefik.http.services.${PLUME_RPC_HOST:-plume-rpc}.loadbalancer.server.port=${RPC_PORT:-8545}
+      - traefik.http.routers.${RPC_HOST:-plume-rpc}.service=${RPC_HOST:-plume-rpc}
+      - traefik.http.routers.${RPC_HOST:-plume-rpc}.entrypoints=websecure
+      - traefik.http.routers.${RPC_HOST:-plume-rpc}.rule=Host(`${RPC_HOST:-plume-rpc}.${DOMAIN}`)
+      - traefik.http.routers.${RPC_HOST:-plume-rpc}.tls.certresolver=letsencrypt
+      - traefik.http.routers.${RPC_HOST:-plume-rpc}lb.service=${RPC_HOST:-plume-rpc}
+      - traefik.http.routers.${RPC_HOST:-plume-rpc}lb.entrypoints=websecure
+      - traefik.http.routers.${RPC_HOST:-plume-rpc}lb.rule=Host(`${RPC_LB:-plume-lb}.${DOMAIN}`)
+      - traefik.http.routers.${RPC_HOST:-plume-rpc}lb.tls.certresolver=letsencrypt
+      - traefik.http.services.${RPC_HOST:-plume-rpc}.loadbalancer.server.port=${RPC_PORT:-8545}
       # WS Router
-      - traefik.http.routers.${PLUME_WS_HOST:-plume-ws}.service=${PLUME_WS_HOST:-plume-ws}
-      - traefik.http.routers.${PLUME_WS_HOST:-plume-ws}.entrypoints=websecure
-      - traefik.http.routers.${PLUME_WS_HOST:-plume-ws}.rule=Host(`${PLUME_WS_HOST:-plume-ws}.${DOMAIN}`)
-      - traefik.http.routers.${PLUME_WS_HOST:-plume-ws}.tls.certresolver=letsencrypt
-      - traefik.http.routers.${PLUME_WS_HOST:-plume-ws}lb.service=${PLUME_WS_HOST:-plume-ws}
-      - traefik.http.routers.${PLUME_WS_HOST:-plume-ws}lb.entrypoints=websecure
-      - traefik.http.routers.${PLUME_WS_HOST:-plume-ws}lb.rule=Host(`${WS_LB:-plume-ws-lb}.${DOMAIN}`)
-      - traefik.http.routers.${PLUME_WS_HOST:-plume-ws}lb.tls.certresolver=letsencrypt
-      - traefik.http.services.${PLUME_WS_HOST:-plume-ws}.loadbalancer.server.port=${WS_PORT:-8546}
+      - traefik.http.routers.${WS_HOST:-plume-ws}.service=${WS_HOST:-plume-ws}
+      - traefik.http.routers.${WS_HOST:-plume-ws}.entrypoints=websecure
+      - traefik.http.routers.${WS_HOST:-plume-ws}.rule=Host(`${WS_HOST:-plume-ws}.${DOMAIN}`)
+      - traefik.http.routers.${WS_HOST:-plume-ws}.tls.certresolver=letsencrypt
+      - traefik.http.routers.${WS_HOST:-plume-ws}lb.service=${WS_HOST:-plume-ws}
+      - traefik.http.routers.${WS_HOST:-plume-ws}lb.entrypoints=websecure
+      - traefik.http.routers.${WS_HOST:-plume-ws}lb.rule=Host(`${WS_LB:-plume-ws-lb}.${DOMAIN}`)
+      - traefik.http.routers.${WS_HOST:-plume-ws}lb.tls.certresolver=letsencrypt
+      - traefik.http.services.${WS_HOST:-plume-ws}.loadbalancer.server.port=${WS_PORT:-8546}
 
 volumes:
   plume-data:
