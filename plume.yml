@@ -9,6 +9,8 @@ x-logging: &logging
 services:
   celestia-server:
     image: ghcr.io/celestiaorg/nitro-das-celestia:v0.4.3
+    restart: unless-stopped
+    <<: *logging
     entrypoint:
       - /bin/celestia-server
       - --celestia.namespace-id
