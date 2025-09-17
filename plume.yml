@@ -8,7 +8,7 @@ x-logging: &logging
 
 services:
   celestia-server:
-    image: ghcr.io/celestiaorg/nitro-das-celestia:v0.4.3
+    image: ghcr.io/celestiaorg/nitro-das-celestia:v0.5.4-mocha
     restart: unless-stopped
     <<: *logging
     entrypoint:
