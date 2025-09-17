@@ -61,24 +61,56 @@ download_and_extract() {
       err "Failed to download snapshot from ${url}"; return 1; fi
   fi
 
-  # Detect type (tar, tar.gz, tar.lz4, tar.zst)
-  # We expect an archive containing the contents of the data dir.
-  if file "${tmpfile}" | grep -qi 'tar archive'; then
+  # Install file command if missing (needed for archive type detection)
+  if ! command -v file >/dev/null 2>&1; then
+    if [ "$(id -u)" = "0" ] && command -v apt-get >/dev/null 2>&1; then
+      log "Installing file package for archive detection";
+      apt-get install -y --no-install-recommends file >/dev/null 2>&1 || true
+    fi
+  fi
+
+  # Detect type (tar, tar.gz, tar.lz4, tar.zst) - with fallback to filename
+  local file_type=""
+  if command -v file >/dev/null 2>&1; then
+    file_type=$(file "${tmpfile}" 2>/dev/null || true)
+  fi
+
+  # Fallback: detect by URL extension if file command failed
+  if [ -z "${file_type}" ]; then
+    log "file command unavailable, using URL extension fallback";
+    case "${url}" in
+      *.tar.gz|*.tgz) file_type="gzip compressed" ;;
+      *.tar.zst|*.tar.zstd) file_type="Zstandard compressed" ;;
+      *.tar.lz4) file_type="LZ4 compressed" ;;
+      *.tar) file_type="tar archive" ;;
+      *) file_type="unknown" ;;
+    esac
+  fi
+
+  if echo "${file_type}" | grep -qi 'tar archive'; then
     log "Extracting uncompressed tar archive";
     tar -xf "${tmpfile}" -C "${DATA_DIR}" || return 1
-  elif file "${tmpfile}" | grep -qi 'gzip compressed'; then
+  elif echo "${file_type}" | grep -qi 'gzip compressed'; then
     log "Extracting gzip tar archive";
     tar -xzf "${tmpfile}" -C "${DATA_DIR}" || return 1
-  elif file "${tmpfile}" | grep -qi 'Zstandard compressed'; then
+  elif echo "${file_type}" | grep -qi 'Zstandard compressed'; then
     if ! command -v zstd >/dev/null 2>&1; then
-      log "Installing zstd (busybox/apk if available)";
-      if command -v apk >/dev/null 2>&1; then apk add --no-cache zstd || true; fi
+      log "Installing zstd";
+      if [ "$(id -u)" = "0" ] && command -v apt-get >/dev/null 2>&1; then
+        apt-get install -y --no-install-recommends zstd >/dev/null 2>&1 || true
+      elif command -v apk >/dev/null 2>&1; then
+        apk add --no-cache zstd >/dev/null 2>&1 || true
+      fi
     fi
     tar -I zstd -xf "${tmpfile}" -C "${DATA_DIR}" || return 1
-  elif file "${tmpfile}" | grep -qi 'LZ4 compressed'; then
+  elif echo "${file_type}" | grep -qi 'LZ4 compressed'; then
     if ! command -v lz4 >/dev/null 2>&1; then
-      log "Installing lz4 (busybox/apk if available)";
-      if command -v apk >/dev/null 2>&1; then apk add --no-cache lz4 || true; fi
+      log "Installing lz4";
+      if [ "$(id -u)" = "0" ] && command -v apt-get >/dev/null 2>&1; then
+        apt-get install -y --no-install-recommends lz4 >/dev/null 2>&1 || true
+      elif command -v apk >/dev/null 2>&1; then
+        apk add --no-cache lz4 >/dev/null 2>&1 || true
+      fi
     fi
     # lz4 may produce a .tar when decompressed if it's a .tar.lz4
     mkdir -p "${DATA_DIR}/.tmp_extract"
@@ -89,7 +121,7 @@ download_and_extract() {
       err "Failed to decompress lz4 archive"; return 1
     fi
   else
-    err "Unknown archive type for snapshot. Proceeding without extraction."; return 1
+    err "Unknown archive type for snapshot (detected: ${file_type}). Proceeding without extraction."; return 1
   fi
 
   touch "${MARKER_FILE}"
