@@ -32,13 +32,18 @@ services:
       - ETH_BEACON_RPC_URL=${ETH_BEACON_RPC_URL:-}
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - EXTRA_FLAGS=${EXTRA_FLAGS:-}
+      - SNAPSHOT_URL=${SNAPSHOT_URL:-}
     ports:
       - ${P2P_PORT:-30303}:30303/tcp
       - ${P2P_PORT:-30303}:30303/udp
     <<: *logging
     volumes:
       - plume-data:/home/user/.arbitrum
+      - ./scripts/consensus-entrypoint.sh:/usr/local/bin/consensus-entrypoint.sh:ro
     entrypoint:
+      - /usr/bin/env
+      - bash
+      - /usr/local/bin/consensus-entrypoint.sh
       - /usr/local/bin/nitro
       - --validation.wasm.allowed-wasm-module-roots
       - /home/user/nitro-legacy/machines,/home/user/target/machines
