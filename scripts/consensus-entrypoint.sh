@@ -22,17 +22,25 @@ download_and_extract() {
   log "Downloading snapshot: ${url}";
   local downloader="aria2c"
   if ! command -v aria2c >/dev/null 2>&1; then
-    # Try apt-get (Debian/Ubuntu based) first
+    log "aria2c not found in PATH before install. Attempting installation.";
     if command -v apt-get >/dev/null 2>&1; then
-      log "Installing aria2 via apt-get";
-      export DEBIAN_FRONTEND=noninteractive
-      apt-get update -y >/dev/null 2>&1 || true
-      apt-get install -y --no-install-recommends aria2 >/dev/null 2>&1 || true
+      if [ "$(id -u)" != "0" ]; then
+        err "Not running as root; cannot apt-get install aria2. Will fall back to curl.";
+      else
+        export DEBIAN_FRONTEND=noninteractive
+        if ! apt-get update -y 2>&1 | sed 's/^/[snapshot-init][apt] /'; then
+          err "apt-get update failed"; fi
+        if ! apt-get install -y --no-install-recommends aria2 2>&1 | sed 's/^/[snapshot-init][apt] /'; then
+          err "apt-get install aria2 failed"; fi
+      fi
+    else
+      err "apt-get not available; cannot install aria2.";
     fi
   fi
   if command -v aria2c >/dev/null 2>&1; then
-    if ! aria2c -x "${SNAPSHOT_ARIA2_CONN}" -s "${SNAPSHOT_ARIA2_SPLIT}" -k 4M --allow-overwrite=true --continue=true -o "$(basename "${tmpfile}")" -d "$(dirname "${tmpfile}")" "${url}"; then
-      err "aria2c failed, falling back to curl"; downloader="curl"
+    log "aria2c detected: $(command -v aria2c)";
+    if ! aria2c -x "${SNAPSHOT_ARIA2_CONN}" -s "${SNAPSHOT_ARIA2_SPLIT}" -k 4M --allow-overwrite=true --continue=true --summary-interval=15 -o "$(basename "${tmpfile}")" -d "$(dirname "${tmpfile}")" "${url}"; then
+      err "aria2c download failed (exit $?). Falling back to curl."; downloader="curl"
     else
       log "Download complete via aria2c";
     fi
@@ -41,7 +49,15 @@ download_and_extract() {
   fi
   if [ "${downloader}" = "curl" ]; then
     log "Using curl fallback";
-    if ! curl -L --fail --retry 5 --retry-delay 5 -o "${tmpfile}" "${url}"; then
+    # Use --progress-bar if stderr is a TTY; otherwise just regular output
+    CURL_PROGRESS_FLAG="--progress-bar"
+    if [ ! -t 2 ]; then
+      CURL_PROGRESS_FLAG=""
+    fi
+    log "curl fallback starting (progress may be limited in non-TTY).";
+    # Print content length if available
+    curl -sI "${url}" | awk '/[Cc]ontent-[Ll]ength/ {print "[snapshot-init] Reported size: "$2}' | tr -d '\r'
+    if ! curl -L --fail --retry 5 --retry-delay 5 ${CURL_PROGRESS_FLAG} -o "${tmpfile}" "${url}"; then
       err "Failed to download snapshot from ${url}"; return 1; fi
   fi
 

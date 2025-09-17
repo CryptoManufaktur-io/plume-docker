@@ -27,6 +27,7 @@ services:
   consensus:
     image: ghcr.io/conduitxyz/plume-nitro:v3.3.2-celestia
     restart: unless-stopped
+    user: root
     environment:
       - ETH_RPC_URL=${ETH_RPC_URL:-}
       - ETH_BEACON_RPC_URL=${ETH_BEACON_RPC_URL:-}
