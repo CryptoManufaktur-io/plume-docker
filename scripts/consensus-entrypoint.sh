@@ -83,19 +83,14 @@ download_and_extract() {
 # Ensure data dir exists
 mkdir -p "${DATA_DIR}"
 
-# If directory empty (only maybe lost+found) and snapshot is provided and not yet restored
+# Always restore snapshot if URL is provided and marker file not present
 if [ -n "${SNAPSHOT_URL}" ] && [ ! -f "${MARKER_FILE}" ]; then
-  # Check emptiness (no files or only marker missing)
-  if [ -z "$(find "${DATA_DIR}" -mindepth 1 -maxdepth 1 2>/dev/null | head -n1)" ]; then
-    log "Data directory empty. Attempting snapshot restore."
-    if ! download_and_extract "${SNAPSHOT_URL}"; then
-      err "Snapshot restore failed; continuing with genesis sync.";
-    fi
-  else
-    log "Data directory not empty; skipping snapshot.";
+  log "Marker file missing; restoring snapshot from ${SNAPSHOT_URL}";
+  if ! download_and_extract "${SNAPSHOT_URL}"; then
+    err "Snapshot restore failed; continuing with genesis sync.";
   fi
 else
-  log "No snapshot restoration needed.";
+  log "No snapshot restoration needed (either marker exists or SNAPSHOT_URL unset).";
 fi
 
 log "Starting nitro consensus client.";
