@@ -18,7 +18,7 @@ services:
     command:
       - |
         set -euo pipefail
-        DATA_DIR=/home/user/.arbitrum
+        DATA_DIR=/home/user/.arbitrum/conduit-orbit-deployer/nitro
         MARKER_FILE=.snapshot_restored
         TUID=1000
         TGID=1000
@@ -31,6 +31,14 @@ services:
         # Only restore if marker not present
         if [ -f "$$MARKER" ]; then
           echo "[snapshot-init] Marker present ($$MARKER) -> skipping"; exit 0; fi
+        # Ensure target data directory exists
+        mkdir -p "$$DATA_DIR"
+        # Safety check: if directory is non-empty and no marker, refuse to overwrite to avoid corrupting an existing sync
+        if [ -n "$(ls -A "$$DATA_DIR" 2>/dev/null)" ]; then
+          echo "[snapshot-init] WARNING: DATA_DIR ($$DATA_DIR) not empty and no marker present. Refusing to apply snapshot.";
+          echo "[snapshot-init] Move or remove existing data, then re-run, if you intended to restore a snapshot.";
+          exit 1;
+        fi
         echo "[snapshot-init] Restoring snapshot from $SNAPSHOT_URL"
         TMP_ARCHIVE=/tmp/snapshot.archive
         # Prefer aria2c for faster multi-connection download, fallback to curl
@@ -48,6 +56,8 @@ services:
           *.tar) echo "[snapshot-init] Detected tar archive"; tar -xf "$$TMP_ARCHIVE" -C "$$DATA_DIR" ;;
           *) echo "[snapshot-init] Unknown extension -> attempting generic tar extract"; tar -xf "$$TMP_ARCHIVE" -C "$$DATA_DIR" || { echo "[snapshot-init] Extraction failed"; exit 1; };;
         esac
+        # Cleanup archive to free space
+        rm -f "$$TMP_ARCHIVE"
         touch "$$MARKER"
         # Adjust ownership so the runtime user in consensus container can read/write
         if command -v chown >/dev/null 2>&1; then
