@@ -62,7 +62,7 @@ services:
         # Adjust ownership so the runtime user in consensus container can read/write
         if command -v chown >/dev/null 2>&1; then
           echo "[snapshot-init] Setting ownership to $$TUID:$$TGID";
-          chown -R $$TUID:$$TGID "$$DATA_DIR" || echo "[snapshot-init] WARNING: chown failed";
+          chown -R $$TUID:$$TGID "$$DATA_DIR/.." || echo "[snapshot-init] WARNING: chown failed";
         fi
         echo "[snapshot-init] Snapshot restored successfully (marker created)"
         # List top-level contents for visibility
