@@ -45,11 +45,15 @@ start() {
   # Either set __screen_id=<name-of-project> here or derive it from NETWORK
   __var="NETWORK"
   __get_value_from_env "${__var}" "${__env_file}" "__screen_id"
+  # Provide a safe default if NETWORK is unset or empty (shellcheck SC2154 mitigation)
+  __screen_id="${__screen_id:-plume}"
 
-  # hellcheck disable=SC2154
+  # Split compose command into array to avoid SC2086 while preserving intended word splitting
+  # __compose_exe is expected to be something like "docker compose"
+  read -r -a __compose_cmd <<< "${__compose_exe}"
+
   rm -f "/tmp/${__screen_id}-compose-screen.log"
-  # hellcheck disable=SC2086
-  screen -dmS "${__screen_id}-compose-session" -L -Logfile "/tmp/${__screen_id}-compose-screen.log" ${__compose_exe} up -d --remove-orphans "$@"
+  screen -dmS "${__screen_id}-compose-session" -L -Logfile "/tmp/${__screen_id}-compose-screen.log" "${__compose_cmd[@]}" up -d --remove-orphans "$@"
   echo "Running \"docker compose up -d\" in screen because of the init container."
   echo
   echo "If this is your first start and you are getting a SNAPSHOT, you can view the init logs:"
