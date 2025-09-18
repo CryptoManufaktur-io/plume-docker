@@ -36,66 +36,34 @@ __prep_conffiles() {
 
 
 start() {
-  # If a snapshot restore is requested, run compose inside a transient screen session
-  # so that the user regains the terminal immediately while we still monitor readiness.
-  if [ -n "${SNAPSHOT_URL:-}" ]; then
-    if ! type -P screen >/dev/null 2>&1; then
-      if [ "${__cannot_sudo}" -eq 0 ]; then
-        echo "Installing screen (required for background monitored startup)"
-        ${__auto_sudo} apt-get update && ${__auto_sudo} apt-get install -y screen >/dev/null 2>&1 || true
-      else
-        echo "screen not found and cannot install (no sudo). Falling back to direct 'up -d'."
-        __docompose up -d --remove-orphans "$@"
-        return
-      fi
-    fi
-    __var="NETWORK"
-    __get_value_from_env "${__var}" "${__env_file}" "__screen_id"
-    if [ -z "${__screen_id}" ]; then
-      __screen_id="plume"
-    fi
-    __session_name="${__screen_id}-compose-session"
-    __log_file="/tmp/${__session_name}.log"
-    rm -f "${__log_file}" || true
-    echo "Starting docker compose in detached screen session: ${__session_name}"
-    echo " Logs: ${__log_file}"
-    # shellcheck disable=SC2086
-    screen -dmS "${__session_name}" -L -Logfile "${__log_file}" bash -c "${__compose_exe} up -d --remove-orphans $*; echo '[monitor] compose up finished with exit code $?';"
-    echo "Monitoring container readiness (snapshot mode). This can take a while."
-    echo "Detach anytime: tail -f ${__log_file} or screen -r ${__session_name}"
-    # Basic readiness: wait for consensus + snapshot-init (if present)
-    __targets=( snapshot-init consensus )
-    __start_ts=$(date +%s)
-    __timeout=${STARTUP_TIMEOUT_SECONDS:-900}
-    while :; do
-      __all_up=1
-      for __svc in "${__targets[@]}"; do
-        if ! __docompose ps --format json 2>/dev/null | grep -q '"Service":"'"${__svc}"'"'; then
-          continue # service might not exist (snapshot-init runs once)
-        fi
-        __state=$(__docompose ps --status running --services 2>/dev/null | grep -Fx "${__svc}" || true)
-        if [ -z "${__state}" ]; then
-          __all_up=0
-          break
-        fi
-      done
-      if [ ${__all_up} -eq 1 ]; then
-        echo "All target services running. Exiting screen session monitor."; break
-      fi
-      __now=$(date +%s)
-      if [ $(( __now - __start_ts )) -ge ${__timeout} ]; then
-        echo "Startup monitor timeout (${__timeout}s) reached; continuing regardless."; break
-      fi
-      sleep 5
-    done
-    # Kill the screen session if still running (non-intrusive)
-    if screen -list | grep -q "${__session_name}"; then
-      screen -S "${__session_name}" -X quit >/dev/null 2>&1 || true
-    fi
-    echo "Startup background screen session ended."
-  else
-    __docompose up -d --remove-orphans "$@"
-  fi
+  __docompose up -d --remove-orphans "$@"
+# Adjust all of the below, carefully. hellcheck becomes shellcheck
+# If you have an init container, e.g. to grab a SNAPSHOT, delete the above line and run this in screen
+#  if ! type -P screen >/dev/null 2>&1; then
+#    ${__auto_sudo} apt-get update && ${__auto_sudo} apt-get install -y screen
+#  fi
+# If multiples of this stack may run on one host, distinguish by something unique. Otherwise just set a value here with
+# __screen_id=<name-of-project>
+# OR the next three lines
+# __var="NETWORK"
+# __get_value_from_env "${__var}" "${__env_file}" "__screen_id"
+# hellcheck disable=SC2154
+#  rm -f "/tmp/${__screen_id}-compose-screen.log"
+# hellcheck disable=SC2086
+#  screen -dmS "${__screen_id}-compose-session" -L -Logfile "/tmp/${__screen_id}-compose-screen.log" ${__compose_exe} up -d --remove-orphans "$@"
+#  echo "Running \"docker compose up -d\" in screen because of the init container."
+#  echo
+#  echo "If this is your first start and you are getting a SNAPSHOT, you can view the init logs:"
+#  echo "\"${__me} logs -f init\""
+#  echo
+#  echo "You can attach to the screen session with \"screen -r ${__screen_id}-compose-session\""
+#  echo
+#  echo "Waiting 5 seconds"
+#  sleep 5
+#  echo
+#  echo "Here's the output of docker compose so far:"
+#  cat "/tmp/${__screen_id}-compose-screen.log"
+#  echo
 }
 
 
