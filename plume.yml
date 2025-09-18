@@ -22,39 +22,41 @@ services:
         MARKER_FILE=.snapshot_restored
         TUID=1000
         TGID=1000
+        # Internal marker path (define before use) - use $$ so docker compose doesn't try to interpolate
+        MARKER="$$DATA_DIR/$$MARKER_FILE"
         if [ -z "${SNAPSHOT_URL:-}" ]; then
           echo "[snapshot-init] SNAPSHOT_URL not set -> nothing to do"; exit 0; fi
         # Install needed tools
         apk add --no-cache aria2 curl tar lz4 zstd >/dev/null 2>&1 || true
         # Only restore if marker not present
-        if [ -f "$MARKER" ]; then
-          echo "[snapshot-init] Marker present ($MARKER) -> skipping"; exit 0; fi
+        if [ -f "$$MARKER" ]; then
+          echo "[snapshot-init] Marker present ($$MARKER) -> skipping"; exit 0; fi
         echo "[snapshot-init] Restoring snapshot from $SNAPSHOT_URL"
         TMP_ARCHIVE=/tmp/snapshot.archive
         # Prefer aria2c for faster multi-connection download, fallback to curl
         if command -v aria2c >/dev/null 2>&1; then
           echo "[snapshot-init] Using aria2c for download"
-          aria2c -x 8 -s 8 -k 4M --timeout=30 --retry-wait=5 --max-tries=5 -o "$(basename "$TMP_ARCHIVE")" -d /tmp "$SNAPSHOT_URL" || { echo "[snapshot-init] aria2c failed, falling back to curl"; curl -L --fail --retry 3 --retry-delay 5 "$SNAPSHOT_URL" -o "$TMP_ARCHIVE"; }
+          aria2c -x 16 -s 16 -k 4M --timeout=30 --retry-wait=5 --max-tries=5 -o "$(basename "$$TMP_ARCHIVE")" -d /tmp "$SNAPSHOT_URL" || { echo "[snapshot-init] aria2c failed, falling back to curl"; curl -L --fail --retry 3 --retry-delay 5 "$SNAPSHOT_URL" -o "$$TMP_ARCHIVE"; }
         else
-          curl -L --fail --retry 3 --retry-delay 5 "$SNAPSHOT_URL" -o "$TMP_ARCHIVE"
+          curl -L --fail --retry 3 --retry-delay 5 "$SNAPSHOT_URL" -o "$$TMP_ARCHIVE"
         fi
         # Detect by content / extension
         case "$SNAPSHOT_URL" in
-          *.tar.lz4|*.lz4) echo "[snapshot-init] Detected lz4 archive"; lz4 -d "$TMP_ARCHIVE" -c | tar -x -C "$DATA_DIR" ;;
-          *.tar.zst|*.zst) echo "[snapshot-init] Detected zstd archive"; zstd -d "$TMP_ARCHIVE" -c | tar -x -C "$DATA_DIR" ;;
-          *.tar.gz|*.tgz|*.gz) echo "[snapshot-init] Detected gzip archive"; tar -xzf "$TMP_ARCHIVE" -C "$DATA_DIR" ;;
-          *.tar) echo "[snapshot-init] Detected tar archive"; tar -xf "$TMP_ARCHIVE" -C "$DATA_DIR" ;;
-          *) echo "[snapshot-init] Unknown extension -> attempting generic tar extract"; tar -xf "$TMP_ARCHIVE" -C "$DATA_DIR" || { echo "[snapshot-init] Extraction failed"; exit 1; };;
+          *.tar.lz4|*.lz4) echo "[snapshot-init] Detected lz4 archive"; lz4 -d "$$TMP_ARCHIVE" -c | tar -x -C "$$DATA_DIR" ;;
+          *.tar.zst|*.zst) echo "[snapshot-init] Detected zstd archive"; zstd -d "$$TMP_ARCHIVE" -c | tar -x -C "$$DATA_DIR" ;;
+          *.tar.gz|*.tgz|*.gz) echo "[snapshot-init] Detected gzip archive"; tar -xzf "$$TMP_ARCHIVE" -C "$$DATA_DIR" ;;
+          *.tar) echo "[snapshot-init] Detected tar archive"; tar -xf "$$TMP_ARCHIVE" -C "$$DATA_DIR" ;;
+          *) echo "[snapshot-init] Unknown extension -> attempting generic tar extract"; tar -xf "$$TMP_ARCHIVE" -C "$$DATA_DIR" || { echo "[snapshot-init] Extraction failed"; exit 1; };;
         esac
-        touch "$MARKER"
+        touch "$$MARKER"
         # Adjust ownership so the runtime user in consensus container can read/write
         if command -v chown >/dev/null 2>&1; then
-          echo "[snapshot-init] Setting ownership to ${TUID}:${TGID}";
-          chown -R ${TUID}:${TGID} "$DATA_DIR" || echo "[snapshot-init] WARNING: chown failed";
+          echo "[snapshot-init] Setting ownership to $$TUID:$$TGID";
+          chown -R $$TUID:$$TGID "$$DATA_DIR" || echo "[snapshot-init] WARNING: chown failed";
         fi
         echo "[snapshot-init] Snapshot restored successfully (marker created)"
         # List top-level contents for visibility
-        ls -1 "$DATA_DIR" | sed 's/^/[snapshot-init] restored: /'
+        ls -1 "$$DATA_DIR" | sed 's/^/[snapshot-init] restored: /'
         exit 0
 
   daprovider:
