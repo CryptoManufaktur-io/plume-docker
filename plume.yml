@@ -116,8 +116,10 @@ services:
     volumes:
       - plume-data:/home/user/.arbitrum
     depends_on:
-      - snapshot-init
-      - celestia-server
+      snapshot-init:
+        condition: service_completed_successfully
+      celestia-server:
+        condition: service_started
     entrypoint:
       - /usr/local/bin/nitro
       - --validation.wasm.allowed-wasm-module-roots
