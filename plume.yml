@@ -69,6 +69,25 @@ services:
         ls -1 "$$DATA_DIR" | sed 's/^/[snapshot-init] restored: /'
         exit 0
 
+  celestia-light:
+    image: ghcr.io/celestiaorg/celestia-node:v0.25.3
+    restart: unless-stopped
+    <<: *logging
+    environment:
+      - CELESTIA_NETWORK=${CELESTIA_NETWORK:-mainnet}
+    volumes:
+      - celestia-light-data:/home/celestia
+    command:
+      - >
+        sh -c "
+        if [ ! -d /home/celestia/.celestia-light ]; then
+          echo '[celestia-light] First run -> init';
+          celestia light init --p2p.network ${CELESTIA_NETWORK:-mainnet};
+        fi;
+        echo '[celestia-light] Starting light node on network ${CELESTIA_NETWORK:-mainnet}';
+        exec celestia light start --p2p.network ${CELESTIA_NETWORK:-mainnet}
+        "
+
   daprovider:
     image: ghcr.io/celestiaorg/nitro:v3.6.8
     restart: unless-stopped
@@ -94,6 +113,7 @@ services:
     <<: *logging
     depends_on:
       - daprovider
+      - celestia-light
     entrypoint:
       - /bin/celestia-server
       - --das.enable
@@ -107,7 +127,7 @@ services:
       - --das.rpc.url
       - "http://daprovider:9880"
       - --celestia.rpc
-      - "${CELESTIA_RPC:-}"
+      - "${CELESTIA_RPC:-http://celestia-light:26657}" # default to internal light node
       - --log-level
       - "DEBUG"
 
@@ -192,3 +212,4 @@ services:
 
 volumes:
   plume-data:
+  celestia-light-data:
