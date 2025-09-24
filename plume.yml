@@ -77,16 +77,16 @@ services:
       - CELESTIA_NETWORK=${CELESTIA_NETWORK:-mainnet}
     volumes:
       - celestia-light-data:/home/celestia
+    entrypoint: ["/bin/sh", "-c"]
     command:
-      - >
-        sh -c "
+      - |
+        set -e
         if [ ! -d /home/celestia/.celestia-light ]; then
-          echo '[celestia-light] First run -> init';
-          celestia light init --p2p.network ${CELESTIA_NETWORK:-mainnet};
-        fi;
-        echo '[celestia-light] Starting light node on network ${CELESTIA_NETWORK:-mainnet}';
+          echo '[celestia-light] First run -> init'
+          celestia light init --p2p.network ${CELESTIA_NETWORK:-mainnet}
+        fi
+        echo '[celestia-light] Starting light node on network ${CELESTIA_NETWORK:-mainnet}'
         exec celestia light start --p2p.network ${CELESTIA_NETWORK:-mainnet}
-        "
 
   daprovider:
     image: ghcr.io/celestiaorg/nitro:v3.6.8
