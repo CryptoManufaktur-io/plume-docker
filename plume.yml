@@ -86,7 +86,7 @@ services:
           celestia light init --p2p.network ${CELESTIA_NETWORK:-mainnet}
         fi
         echo '[celestia-light] Starting light node on network ${CELESTIA_NETWORK:-mainnet}'
-        exec celestia light start --p2p.network ${CELESTIA_NETWORK:-mainnet} --rpc.addr 0.0.0.0 --rpc.port ${CELESTIA_NODE_RPC_PORT:-26657}
+        exec celestia light start --p2p.network ${CELESTIA_NETWORK:-mainnet} --rpc.addr 0.0.0.0 --rpc.port ${CELESTIA_NODE_RPC_PORT:-26657} --rpc.skip-auth
 
   daprovider:
     image: ghcr.io/celestiaorg/nitro:v3.6.8
