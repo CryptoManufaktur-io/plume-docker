@@ -110,7 +110,6 @@ services:
       - celestia-light
     entrypoint:
       - /bin/celestia-server
-      - --celestia.enable=true
       - --celestia.rpc=${CELESTIA_RPC:-http://celestia-light:26657}
       - --celestia.namespace-id=${CELESTIA_NAMESPACE}
       - --enable-rpc
