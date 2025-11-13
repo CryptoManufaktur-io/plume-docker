@@ -70,7 +70,7 @@ services:
         exit 0
 
   celestia-light:
-    image: ghcr.io/celestiaorg/celestia-node:v0.25.3
+    image: ghcr.io/celestiaorg/celestia-node:${CELESTIA_LIGHT_TAG}
     restart: unless-stopped
     <<: *logging
     environment:
@@ -89,26 +89,20 @@ services:
         exec celestia light start --p2p.network ${CELESTIA_NETWORK:-mainnet} --rpc.addr 0.0.0.0 --rpc.port ${CELESTIA_NODE_RPC_PORT:-26657} --rpc.skip-auth
 
   daprovider:
-    image: ghcr.io/celestiaorg/nitro:v3.6.8
+    image: ghcr.io/celestiaorg/nitro:${NITRO_TAG}
     restart: unless-stopped
     <<: *logging
     entrypoint: /usr/local/bin/daprovider
     command:
-      - --das-server.addr
-      - "0.0.0.0"
-      - --das-server.port
-      - "9880"
-      - --das-server.data-availability.enable
-      - --das-server.data-availability.rest-aggregator.enable
-      - --das-server.data-availability.rest-aggregator.urls
-      - "https://das-plume-mainnet-1.t.conduit.xyz"
-      - --das-server.data-availability.parent-chain-node-url
-      - "${ETH_RPC_URL:-}"
-      - --das-server.data-availability.sequencer-inbox-address
-      - "0x85eC1b9138a8b9659A51e2b51bb0861901040b59"
+      - --das-server.port=9880
+      - --das-server.addr=0.0.0.0
+      - --das-server.data-availability.parent-chain-node-url=${ETH_RPC_URL}
+      - --das-server.data-availability.sequencer-inbox-address=${SEQUENCER_INBOX_ADDRESS}
+      - --das-server.data-availability.rest-aggregator.enable=true
+      - --das-server.data-availability.rest-aggregator.urls=${DAS_SERVER}
 
   celestia-server:
-    image: ghcr.io/celestiaorg/nitro-das-celestia:v0.5.4
+    image: ghcr.io/celestiaorg/nitro-das-celestia:${NITRO_DAS_TAG}
     restart: unless-stopped
     <<: *logging
     depends_on:
@@ -116,23 +110,20 @@ services:
       - celestia-light
     entrypoint:
       - /bin/celestia-server
-      - --das.enable
-      - --fallback-enabled
-      - --celestia.namespace-id
-      - "00000d048007a33abfeb"
-      - --rpc-addr
-      - "0.0.0.0"
-      - --rpc-port
-      - "${CELESTIA_NODE_RPC_PORT:-26657}"
-      - --das.rpc.url
-      - "http://daprovider:9880"
-      - --celestia.rpc
-      - "${CELESTIA_RPC:-http://celestia-light:26657}" # default to internal light node
+      - --celestia.enable=true
+      - --celestia.rpc=${CELESTIA_RPC:-http://celestia-light:26657}
+      - --celestia.namespace-id=${CELESTIA_NAMESPACE}
+      - --enable-rpc
+      - --rpc-addr=0.0.0.0
+      - --rpc-port=${CELESTIA_NODE_RPC_PORT:-26657}
+      - --das.enable=true
+      - --das.rpc.url=${DAPROVIDER_URL}
+      - --fallback-enabled=true
       - --log-level
       - "DEBUG"
 
   consensus:
-    image: ghcr.io/celestiaorg/nitro:v3.6.8
+    image: ghcr.io/celestiaorg/nitro:${NITRO_TAG}
     restart: unless-stopped
     environment:
       - ETH_RPC_URL=${ETH_RPC_URL:-}
