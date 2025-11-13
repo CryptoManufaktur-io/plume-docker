@@ -96,6 +96,7 @@ services:
     command:
       - --das-server.port=9880
       - --das-server.addr=0.0.0.0
+      - --das-server.data-availability.enable=true
       - --das-server.data-availability.parent-chain-node-url=${ETH_RPC_URL}
       - --das-server.data-availability.sequencer-inbox-address=${SEQUENCER_INBOX_ADDRESS}
       - --das-server.data-availability.rest-aggregator.enable=true
@@ -110,6 +111,7 @@ services:
       - celestia-light
     entrypoint:
       - /bin/celestia-server
+      - --das.enable
       - --celestia.rpc=${CELESTIA_RPC:-http://celestia-light:26657}
       - --celestia.namespace-id=${CELESTIA_NAMESPACE}
       - --enable-rpc
