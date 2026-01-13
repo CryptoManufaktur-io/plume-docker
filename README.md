@@ -1,19 +1,12 @@
 # Overview
 
 Docker Compose for Plume Nitro Node
+https://docs.plume.org/plume/developers/how-to-guides/how-to-run-a-node
 
 This setup is meant to be used with [central-proxy-docker](https://github.com/CryptoManufaktur-io/central-proxy-docker) for traefik
 and Prometheus remote write; use `:ext-network.yml` in `COMPOSE_FILE` inside `.env` in that case.
 
 If you want the RPC ports exposed locally, use `rpc-shared.yml` in `COMPOSE_FILE` inside `.env`.
-
-## About the Dockerfile
-
-The Dockerfile is adapted from the [official Plume Nitro repository](https://github.com/plumenetwork/plume-nitro), with key modifications:
-- Git clone operations happen inside the Dockerfile, eliminating the need for manual repository cloning
-- Files are copied from the git-cloned repository rather than the local filesystem
-
-This approach allows you to build the Plume Nitro node with a single command without any prerequisites beyond Docker.
 
 ## Quick Start
 
