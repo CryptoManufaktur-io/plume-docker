@@ -86,8 +86,8 @@ services:
       snapshot-init:
         condition: service_completed_successfully
     command:
-      - --persistent.chain=/home/user/.arbitrum
-      - --persistent.global-config=/home/user/.arbitrum
+      - --persistent.chain=/home/user/.arbitrum/conduit-orbit-deployer
+      - --persistent.global-config=/home/user/.arbitrum/conduit-orbit-deployer
       - --chain.id=98866
       - --chain.name=conduit-orbit-deployer
       - --http.addr=0.0.0.0
