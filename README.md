@@ -47,6 +47,30 @@ You can use your own nodes or third-party providers for these endpoints.
 `custom.yml` is not tracked by git and can be used to override anything in the provided yml files. If you use it,
 add it to `COMPOSE_FILE` in `.env`
 
+## Checking Sync Status
+
+To verify your node is synced with the public Wemix network:
+
+```bash
+bash scripts/check_sync.sh
+```
+
+This script compares your local node's latest block against the public Plume RPC endpoint (`https://rpc.plume.org`). It will report:
+- ✅ Node is in sync (height and hash match)
+- ⚠️ Heights differ - still syncing
+- ❌ Heights match but hashes differ - possible reorg or divergence
+
+Defaults used by the sync check:
+- Public RPC: `https://rpc.plume.org`
+- Local RPC: `http://127.0.0.1:${RPC_PORT}` (from `.env`, default `8545`)
+- Compose service (wrapper): `consensus` (when using `./ethd check-sync`)
+
+You can also run:
+
+```bash
+./ethd check-sync
+```
+
 ## Version
 
 Plume Docker uses a semver scheme.
