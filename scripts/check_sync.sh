@@ -17,9 +17,9 @@ Options:
   -h, --help               Show this help
 
 Examples:
-  ./check_sync.sh --public-rpc https://rootstock.drpc.org
-  ./check_sync.sh --compose-service rootstock --public-rpc https://rootstock.drpc.org
-  CONTAINER=rootstock-1 PUBLIC_RPC=https://rootstock.drpc.org ./check_sync.sh
+  ./check_sync.sh --public-rpc https://rpc.plume.org
+  ./check_sync.sh --compose-service consensus --public-rpc https://rpc.plume.org
+  CONTAINER=consensus-1 PUBLIC_RPC=https://rpc.plume.org ./check_sync.sh
 EOF
 }
 
