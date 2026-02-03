@@ -22,7 +22,7 @@ version() {
   case "${__value}" in
     *plume.yml* )
       echo "Plume Nitro Node"
-      __docompose exec consensus nitro version
+      __docompose exec consensus nitro --version
       echo
       ;;&
   esac
