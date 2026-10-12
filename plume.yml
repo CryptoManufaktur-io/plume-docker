@@ -141,6 +141,13 @@ services:
       - traefik.http.routers.${WS_HOST:-plume-ws}lb.rule=Host(`${WS_LB:-plume-ws-lb}.${DOMAIN}`)
       - traefik.http.routers.${WS_HOST:-plume-ws}lb.tls.certresolver=letsencrypt
       - traefik.http.services.${WS_HOST:-plume-ws}.loadbalancer.server.port=${WS_PORT:-8546}
+      # Prometheus scrape (nitro serves Prometheus text at /debug/metrics/prometheus, not /metrics).
+      # Port is container-internal; it is not published unless rpc-shared.yml is used.
+      - metrics.scrape=true
+      - metrics.path=/debug/metrics/prometheus
+      - metrics.port=${METRICS_PORT:-6070}
+      - metrics.instance=plume
+      - metrics.network=mainnet
 
 volumes:
   plume-data:
