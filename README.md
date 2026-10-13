@@ -42,6 +42,15 @@ ETH_BEACON_RPC_URL=http://ethereum-consensus:5052
 
 You can use your own nodes or third-party providers for these endpoints.
 
+## Prometheus metrics
+
+Nitro's metrics server is always enabled (`--metrics`) and listens on `METRICS_PORT` (default `6070`) inside the
+container. The `consensus` service carries `metrics.*` labels so the Prometheus in
+[central-proxy-docker](https://github.com/CryptoManufaktur-io/central-proxy-docker) discovers it automatically;
+this requires `ext-network.yml` in `COMPOSE_FILE`, so the container is on the Traefik network only. Nitro serves
+Prometheus text at `/debug/metrics/prometheus` (plain `/metrics` returns 404). The port is not published unless
+`rpc-shared.yml` is in `COMPOSE_FILE`.
+
 ## Customization
 
 `custom.yml` is not tracked by git and can be used to override anything in the provided yml files. If you use it,
