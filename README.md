@@ -56,6 +56,10 @@ Prometheus text at `/debug/metrics/prometheus` (plain `/metrics` returns 404). T
 `custom.yml` is not tracked by git and can be used to override anything in the provided yml files. If you use it,
 add it to `COMPOSE_FILE` in `.env`
 
+The public HTTP/WS APIs only expose `eth`, `net`, `web3`, `txpool`, `arb` and `arbtrace` (HTTP only). The `debug` and `admin`
+namespaces are not enabled by default. To enable one, set `HTTP_API` and/or `WS_API` in your `.env` to the full list including the
+namespace, e.g. `HTTP_API=net,web3,eth,txpool,arb,arbtrace,debug`, then run `./ethd up`; no tracked file needs editing.
+
 ## Checking Sync Status
 
 To verify your node is synced with the public Wemix network:
